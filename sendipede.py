@@ -4,29 +4,36 @@ import csv
 import smtplib, ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import yaml
+
+config_file = 'config.yml'
+address_file = 'addresses.csv'
+
+with open(config_file) as file:
+    config = yaml.safe_load(file)
 
 #port = 465  # For SSL
-port = 1025  # Testserver
+#port = 1025  # Testserver
 #smtp_server = "smtp.gmail.com"
-smtp_server = "localhost"
-sender_email = "rbaer@gmx.ch"  # Enter your address
+#smtp_server = "localhost"
+#sender_email = "rbaer@gmx.ch"  # Enter your address
 receivers = set() # eliminates duplicate addresses
 #password = input("Type your password and press enter: ")
 
-with open('addresses.csv') as file:
+with open(address_file) as file:
     reader = csv.reader(file)
     for email in reader:
         receivers.add(email[0])
 
 context = ssl.create_default_context()
 #with smtplib.SMTP_SSL(smtp_server, port, context=context) as server:
-with smtplib.SMTP(smtp_server, port) as server:
-    #server.login(sender_email, password)
+with smtplib.SMTP(config['server']['name'], config['server']['port']) as server:
+    #server.login(config['sender'], config['server']['password'])
 
     for receiver_email in receivers:
       message = MIMEMultipart("alternative")
       message["Subject"] = "multipart test"
-      message["From"] = sender_email
+      message["From"] = config['sender']
 
       # Create the plain-text and HTML version of your message
       text = """\
@@ -56,5 +63,5 @@ with smtplib.SMTP(smtp_server, port) as server:
       message.attach(part2)
 
       message["To"] = receiver_email
-      server.sendmail(sender_email, receiver_email, message.as_string())
+      server.sendmail(config['sender'], receiver_email, message.as_string())
 

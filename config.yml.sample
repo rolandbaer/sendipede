@@ -1,0 +1,6 @@
+server:
+  name: localhost
+  port: 1025
+  password: nonexisting
+
+sender: my@email.com
