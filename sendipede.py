@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import argparse
 import csv
 import smtplib, ssl
 from email.mime.text import MIMEText
@@ -9,12 +10,17 @@ import yaml
 config_file = 'config.yml'
 address_file = 'addresses.csv'
 
-with open(config_file) as file:
-  config = yaml.safe_load(file)
-
 receivers = set() # eliminates duplicate addresses
 
-with open(address_file) as file:
+parser = argparse.ArgumentParser(description="Sends a message to multiple receivers, but each message individual")
+parser.add_argument("-c", "--config", help="name of the config file (default: %(default)s)", default=config_file)
+parser.add_argument("-a", "--addresses", help="name of the addresses file (default: %(default)s)", default=address_file)
+args = parser.parse_args()
+
+with open(args.config) as file:
+  config = yaml.safe_load(file)
+
+with open(args.addresses) as file:
   reader = csv.reader(file)
   for email in reader:
     receivers.add(email[0])
