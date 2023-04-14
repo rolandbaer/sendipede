@@ -2,5 +2,6 @@ server:
   name: localhost
   port: 1025 # 465 for SSL, 1025 for Testserver
   password: nonexisting
+  ssl: true
 
 sender: my@email.com
