@@ -2,6 +2,8 @@
 
 import argparse
 import csv
+import time
+import logging
 import smtplib, ssl
 from email import encoders
 from email.mime.base import MIMEBase
@@ -12,7 +14,19 @@ import yaml
 config_file = 'config.yml'
 address_file = 'addresses.csv'
 
+def load_message(filename):
+  with open(filename) as file:
+    text = file.read()
+
+  texts = text.split('\n', 1)
+  subject = texts[0]
+  body = texts[1]
+  return subject, body
+
 receivers = set() # eliminates duplicate addresses
+
+# initialise logging
+logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO, filename="sendipede {d}.log".format(d=time.strftime("%Y-%m-%d")))
 
 parser = argparse.ArgumentParser(description="Sends a message to multiple receivers, but each message individual")
 parser.add_argument("-c", "--config", help="name of the config file (default: %(default)s)", default=config_file)
@@ -21,6 +35,7 @@ parser.add_argument("-a", "--attach", help="file(s) to attach", nargs="*")
 parser.add_argument("message", help="name of the file containing the message to send. The first line in the file is used as the subject of the mail, the rest as the message itself.")
 args = parser.parse_args()
 
+logging.info("starting Sendipede")
 with open(args.config) as file:
   config = yaml.safe_load(file)
 
@@ -42,11 +57,9 @@ try:
   if(config['server']['ssl']):
     server.login(sender, config['server']['password'])
 
-  # Create the plain-text and HTML version of your message
-  with open(args.message) as file:
-    text = file.read()
+  subject, body = load_message(args.message)
 
-  texts = text.split('\n', 1)
+  logging.info(f'sending message "{subject}"')
 
   for receiver in receivers:
     # message = MIMEMultipart("alternative")
@@ -54,9 +67,9 @@ try:
     message["From"] = sender
     message["To"] = receiver
 
-    message["Subject"] = texts[0]
+    message["Subject"] = subject
 
-    part1 = MIMEText(texts[1], "plain")
+    part1 = MIMEText(body, "plain")
     message.attach(part1)
 
     if args.attach != None:
@@ -76,8 +89,13 @@ try:
 
         message.attach(part)
 
-    server.sendmail(sender, receiver, message.as_string())
+    try:
+      result = server.sendmail(sender, receiver, message.as_string())
+      logging.info(f"message sent to {receiver}")
+    except Exception as exception:
+      logging.error(f"{type(exception)=}: {exception=} while sending to {receiver}")
 
 finally:
   server.close()
 
+logging.info("Sendipede stopped")
