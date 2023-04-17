@@ -14,7 +14,7 @@ import yaml
 config_file = 'config.yml'
 address_file = 'addresses.csv'
 
-def load_message(filename):
+def load_message(filename: str):
   with open(filename) as file:
     text = file.read()
 
@@ -23,16 +23,20 @@ def load_message(filename):
   body = texts[1]
   return subject, body
 
+def init_parser(config_file: str, address_file: str):
+    parser = argparse.ArgumentParser(description="Sends a message to multiple receivers, but each message individual")
+    parser.add_argument("-c", "--config", help="name of the config file (default: %(default)s)", default=config_file)
+    parser.add_argument("-r", "--receivers", help="name of the file with the receivers addresses, one email address per line (default: %(default)s)", default=address_file)
+    parser.add_argument("-a", "--attach", help="file(s) to attach", nargs="*")
+    parser.add_argument("message", help="name of the file containing the message to send. The first line in the file is used as the subject of the mail, the rest as the message itself.")
+    return parser
+
 receivers = set() # eliminates duplicate addresses
 
 # initialise logging
 logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO, filename="sendipede {d}.log".format(d=time.strftime("%Y-%m-%d")))
 
-parser = argparse.ArgumentParser(description="Sends a message to multiple receivers, but each message individual")
-parser.add_argument("-c", "--config", help="name of the config file (default: %(default)s)", default=config_file)
-parser.add_argument("-r", "--receivers", help="name of the file with the receivers addresses, one email address per line (default: %(default)s)", default=address_file)
-parser.add_argument("-a", "--attach", help="file(s) to attach", nargs="*")
-parser.add_argument("message", help="name of the file containing the message to send. The first line in the file is used as the subject of the mail, the rest as the message itself.")
+parser = init_parser(config_file, address_file)
 args = parser.parse_args()
 
 logging.info("starting Sendipede")

@@ -1,2 +1,4 @@
-addresses.csv
-*config.yml
+*.csv
+*.yml
+*.txt
+*.log
