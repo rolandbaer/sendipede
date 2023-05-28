@@ -4,6 +4,7 @@ import argparse
 import csv
 import time
 import logging
+import os
 import smtplib
 import ssl
 from email import encoders
@@ -97,10 +98,11 @@ if __name__ == "__main__":
                     # Encode file in ASCII characters to send by email
                     encoders.encode_base64(part)
 
+                    attachment_filename = os.path.basename(attachment_name)
                     # Add header as key/value pair to attachment part
                     part.add_header(
                         "Content-Disposition",
-                        f"attachment; filename= {attachment_name}",
+                        f"attachment; filename= {attachment_filename}",
                     )
 
                     message.attach(part)
