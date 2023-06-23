@@ -45,7 +45,7 @@ if __name__ == "__main__":
 
     # initialise logging
     logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S',
-                        level=logging.INFO, filename="sendipede {d}.log".format(d=time.strftime("%Y-%m-%d")))
+                        level=logging.INFO, filename="sendipede-{d}.log".format(d=time.strftime("%Y-%m-%d")))
 
     parser = init_parser(default_config_file, default_address_file)
     args = parser.parse_args()
