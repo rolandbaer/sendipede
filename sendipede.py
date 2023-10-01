@@ -1,4 +1,9 @@
 #!/usr/bin/python3
+"""
+A script to send messages to multiple recipients, but for each recipient as an
+individual message.
+"""
+__version__ = "1.0.0"
 
 import argparse
 import csv
@@ -37,20 +42,22 @@ def init_parser(config_file: str, address_file: str):
     _parser.add_argument("-a", "--attach", help="file(s) to attach", nargs="*")
     _parser.add_argument(
         "message", help="name of the file containing the message to send. The first line in the file is used as the subject of the mail, the rest as the message itself.")
+    _parser.add_argument('-V', '--version', help="Show version information and quit.",
+                        action='version', version='Sendipede version ' + __version__)
     return _parser
 
 
 if __name__ == "__main__":
     receivers = set()  # eliminates duplicate addresses
 
+    parser = init_parser(default_config_file, default_address_file)
+    args = parser.parse_args()
+
     # initialise logging
     logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S',
                         level=logging.INFO, filename="sendipede-{d}.log".format(d=time.strftime("%Y-%m-%d")))
 
-    parser = init_parser(default_config_file, default_address_file)
-    args = parser.parse_args()
-
-    logging.info("starting Sendipede")
+    logging.info("starting Sendipede " + __version__)
     with open(args.config, encoding="utf-8") as file:
         config = yaml.safe_load(file)
 
