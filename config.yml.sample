@@ -3,5 +3,6 @@ server:
   port: 1025 # 465 for SSL, 1025 for Testserver
   password: nonexisting
   ssl: true
+  session: 10
 
 sender: my@email.com
