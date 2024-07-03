@@ -9,12 +9,12 @@ some mail programs treat as spam indication.
 
 ## Usage sample
 
-```
+```sh
 ./sendipede.py -c config.yml message.txt -a attachment1 attachment2 -r receivers
 ```
 
-For a complete list of the parameters call sendipede.py with the parameter -h
-or --help.
+For a complete list of the parameters call ```sendipede.py``` with the parameter ```-h```
+or ```--help```.
 
 ## File Contents
 
@@ -47,15 +47,19 @@ receiver.three@email.com
 
 The configuration file is in the yaml format. See the sample below:
 
-```
+```yaml
 server:
   name: localhost
   port: 1025 # 465 for SSL, 1025 for Testserver
   password: nonexisting
   ssl: true
+  session: 10
 
 sender: my@email.com
 ```
+The ```session``` value gives the maximum number of mails sent in one session. If
+the receivers file contains more addresses than the session number the session
+will be closed and a new session is opened to send the next chunk of mails.
 
-If ssl is set to false there will be also no authentication. Disabling ssl is
+If ```ssl``` is set to false there will be also no authentication. Disabling ```ssl``` is
 only recommended for testing purposes in the local network.

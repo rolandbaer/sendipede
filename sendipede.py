@@ -3,7 +3,7 @@
 A script to send messages to multiple recipients, but for each recipient as an
 individual message.
 """
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
 import argparse
 import csv
@@ -47,25 +47,8 @@ def init_parser(config_file: str, address_file: str):
     return _parser
 
 
-if __name__ == "__main__":
-    receivers = set()  # eliminates duplicate addresses
-
-    parser = init_parser(default_config_file, default_address_file)
-    args = parser.parse_args()
-
-    # initialise logging
-    logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S',
-                        level=logging.INFO, filename="sendipede-{d}.log".format(d=time.strftime("%Y-%m-%d")))
-
-    logging.info("starting Sendipede " + __version__)
-    with open(args.config, encoding="utf-8") as file:
-        config = yaml.safe_load(file)
-
-    with open(args.receivers, encoding="utf-8") as file:
-        reader = csv.reader(file)
-        for email in reader:
-            receivers.add(email[0])
-
+def send_message(subject, body, receivers, args, config):
+    logging.info("Start sending Session")
     if (config['server']['ssl']):
         context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
         context.load_default_certs()
@@ -80,10 +63,6 @@ if __name__ == "__main__":
 
         if (config['server']['ssl']):
             server.login(sender, config['server']['password'])
-
-        subject, body = load_message(args.message)
-
-        logging.info('sending message "%s"', subject)
 
         for receiver in receivers:
             # message = MIMEMultipart("alternative")
@@ -123,5 +102,40 @@ if __name__ == "__main__":
 
     finally:
         server.close()
+        logging.debug("Session closed")
+
+def split_receivers(receivers, session):
+    return [receivers[i:i + session] for i in range(0, len(receivers), session)]
+
+if __name__ == "__main__":
+    receivers = set()  # eliminates duplicate addresses
+
+    parser = init_parser(default_config_file, default_address_file)
+    args = parser.parse_args()
+
+    # initialise logging
+    logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S',
+                        level=logging.INFO, filename="sendipede-{d}.log".format(d=time.strftime("%Y-%m-%d")))
+
+    logging.info("starting Sendipede " + __version__)
+    with open(args.config, encoding="utf-8") as file:
+        config = yaml.safe_load(file)
+
+    with open(args.receivers, encoding="utf-8") as file:
+        reader = csv.reader(file)
+        for email in reader:
+            receivers.add(email[0])
+
+    subject, body = load_message(args.message)
+
+    logging.info('sending message "%s"', subject)
+
+    if 'session' in config['server'] and config['server']['session'] > 0:
+        receivers_chunks = split_receivers(list(receivers), config['server']['session'])
+    else:
+        receivers_chunks = [list(receivers)]
+
+    for receiver_chunk in receivers_chunks:
+        send_message(subject, body, receiver_chunk, args, config)
 
     logging.info("Sendipede stopped")
